@@ -9,21 +9,14 @@ import connectToSocket from "./config/socket.js";
 import meetingRoute from "./routes/meeting.route.js";
 import authRoute from "./routes/auth.route.js";
 
-/* ===============================
-   ENV & DATABASE (FIRST)
-================================ */
+
 dotenv.config();
 connectDB();
 
-/* ===============================
-   APP & SERVER
-================================ */
 const app = express();
 const server = createServer(app);
 
-/* ===============================
-   MIDDLEWARE
-================================ */
+// Middleware
 app.use(express.json());
 app.use(
   cors({
@@ -32,9 +25,7 @@ app.use(
   })
 );
 
-/* ===============================
-   ROUTES
-================================ */
+// Routes
 app.get("/", (req, res) => {
   res.send("Hello, World!");
 });
@@ -42,13 +33,11 @@ app.get("/", (req, res) => {
 app.use("/api/meeting", meetingRoute);
 app.use("/api/auth", authRoute);
 
-/* ===============================
-   SOCKET.IO
-================================ */
+// Socket.io 
 const io = connectToSocket(server);
 
 io.on("connection", (socket) => {
-  console.log("🟢 Socket connected:", socket.id);
+  console.log("Socket connected:", socket.id);
 
   socket.on("join-meeting", ({ meetingId, userId }) => {
     socket.join(meetingId);
@@ -65,14 +54,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("🔴 Socket disconnected:", socket.id);
+    console.log("Socket disconnected:", socket.id);
   });
 });
 
-/* ===============================
-   START SERVER (LAST)
-================================ */
-const PORT = process.env.PORT || 5000;
+
+const PORT = process.env.PORT || 8000;
 
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

@@ -1,10 +1,6 @@
 import express from "express";
 import authMiddleware from "../middleware/auth.middleware.js";
-import {
-  createMeeting,
-  joinMeeting,
-  leaveMeeting,
-} from "../controllers/meeting.controller.js";
+import {createMeeting, joinMeeting, leaveMeeting } from "../controllers/meeting.controller.js";
 
 const router = express.Router();
 

@@ -7,5 +7,4 @@ const meetingSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-// Mongoose automatically creates _id
 export default mongoose.model("Meeting", meetingSchema);
