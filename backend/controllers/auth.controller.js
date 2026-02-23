@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import httpStatus from "http-status";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose"; // Import mongoose
 
 // In-memory user storage for development
 let inMemoryUsers = [];
@@ -9,8 +10,8 @@ let inMemoryUsers = [];
 // Check if User model is available
 const isUserModelAvailable = () => {
     try {
-        // Check if User model exists and can be used
-        return User && typeof User.findOne === 'function' && User.model && User.model.collection;
+        // Check if User model exists and MongoDB is connected
+        return User && typeof User.findOne === 'function' && mongoose.connection.readyState === 1;
     } catch (error) {
         console.log("User model not available:", error.message);
         return false;
@@ -19,6 +20,9 @@ const isUserModelAvailable = () => {
 
 // register
 export const register = async (req, res) => {
+    console.log('Request body:', req.body);
+    console.log('Request headers:', req.headers);
+    
     const { username, email, password } = req.body;
 
     // check required fields

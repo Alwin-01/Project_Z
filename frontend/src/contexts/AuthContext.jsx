@@ -29,6 +29,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('Attempting login with:', { email, password: '***' });
+      
       const response = await fetch('http://localhost:8000/api/auth/login', {
         method: 'POST',
         headers: {
@@ -39,6 +41,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       const data = await response.json();
+      console.log('Login response:', { status: response.status, data });
 
       if (response.ok && data.success) {
         localStorage.setItem('token', data.token || 'cookie-based');
@@ -47,9 +50,11 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         return { success: true };
       } else {
+        console.error('Login failed:', data.message);
         return { success: false, error: data.message || 'Login failed' };
       }
     } catch (error) {
+      console.error('Login network error:', error);
       return { success: false, error: 'Network error' };
     }
   };
