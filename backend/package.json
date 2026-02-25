@@ -5,22 +5,29 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "dev-with-livekit": "concurrently \"npm run dev\" \"node mock-livekit.js\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.6.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
+    "concurrently": "^8.2.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "http-status": "^2.1.0",
     "jsonwebtoken": "^9.0.3",
+    "livekit-server-sdk": "^2.15.0",
     "mongoose": "^9.1.4",
     "nodemon": "^3.1.11",
     "socket.io": "^4.8.3",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "ws": "^8.14.0"
   }
 }

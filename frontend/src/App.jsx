@@ -1,42 +1,33 @@
-import { useState, useEffect } from "react";
-import { io } from "socket.io-client";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { Login } from './components/Login';
+import { Signup } from './components/Signup';
+import { Dashboard } from './components/Dashboard';
 
-const socket = io("http://localhost:8000");
-
-export default function App() {
-  const [meetingId, setMeetingId] = useState("");
-  const [userId] = useState("user_1");
-  const [joined, setJoined] = useState(false);
-
-  const joinMeeting = () => {
-    socket.emit("join-meeting", { meetingId, userId });
-    setJoined(true);
-  };
-
-  useEffect(() => {
-    socket.on("user-joined", (id) => console.log("Joined:", id));
-    socket.on("user-left", (id) => console.log("Left:", id));
-    socket.on("meeting-ended", () => alert("Meeting Ended"));
-
-    return () => socket.off();
-  }, []);
-
+function App() {
   return (
-    <div style={{ padding: 20 }}>
-      {!joined ? (
-        <>
-          <h2>Project Z – Meeting</h2>
-          <input
-            placeholder="Meeting ID"
-            value={meetingId}
-            onChange={(e) => setMeetingId(e.target.value)}
-          />
-          <br /><br />
-          <button onClick={joinMeeting}>Join Meeting</button>
-        </>
-      ) : (
-        <h3>In Meeting: {meetingId}</h3>
-      )}
-    </div>
+    <AuthProvider>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <div className="App">
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
+
+export default App;

@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: project_z_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: project_z
+    volumes:
+      - mongodb_data:/data/db
+      - ./backend/scripts/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - project_z_network
+
+  # Backend API Server
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: project_z_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/project_z?authSource=admin
+      - JWT_SECRET=your_production_jwt_secret_here
+      - LIVEKIT_API_KEY=devkey
+      - LIVEKIT_API_SECRET=secret
+      - LIVEKIT_HOST=http://livekit-server:7880
+      - FRONTEND_URL=http://localhost:3000
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - project_z_network
+
+  # LiveKit Server
+  livekit-server:
+    image: livekit/livekit-server:latest
+    container_name: project_z_livekit
+    restart: unless-stopped
+    ports:
+      - "7880:7880"
+      - "7881:7881"  # HTTP API
+      - "50000-50050:50000-50050/udp"  # UDP ports for WebRTC
+    environment:
+      - LIVEKIT_KEYS=devkey:secret
+      - REDIS_ADDRESS=redis:6379
+    command: [
+      "--keys", "devkey:secret",
+      "--redis", "redis:6379",
+      "--node-ip", "livekit-server"
+    ]
+    depends_on:
+      - redis
+    networks:
+      - project_z_network
+
+  # Redis for LiveKit
+  redis:
+    image: redis:7-alpine
+    container_name: project_z_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - project_z_network
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: project_z_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_SERVER_URL=http://localhost:8000
+      - REACT_APP_LIVEKIT_URL=ws://localhost:7880
+    depends_on:
+      - backend
+      - livekit-server
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - project_z_network
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: project_z_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+      - livekit-server
+    networks:
+      - project_z_network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  project_z_network:
+    driver: bridge
